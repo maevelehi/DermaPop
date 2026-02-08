@@ -1,29 +1,31 @@
 import { useMemo, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-import { collection, getDocs } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { db } from "../firebase";
 
 const PROBLEMS = [
-  // Mixed skin (match DB ids)
   { id: "oilyTzone", label: "Oily T-zone", skinType: "mixed" },
   { id: "dryCheeks", label: "Dry cheeks", skinType: "mixed" },
   { id: "enlargedPores", label: "Enlarged pores", skinType: "mixed" },
   { id: "blackheads", label: "Blackheads", skinType: "mixed" },
-  { id: "occasionalBreakouts", label: "Occasional breakouts", skinType: "mixed" }, // (no product in your sample data yet)
+  { id: "occasionalBreakouts", label: "Occasional breakouts", skinType: "mixed" },
   { id: "unevenTone", label: "Uneven skin tone", skinType: "mixed" },
   { id: "dullness", label: "Dullness", skinType: "mixed" },
 
-  // Dry skin (match DB ids)
   { id: "tightness", label: "Tightness", skinType: "dry" },
   { id: "flaking", label: "Flaking / peeling", skinType: "dry" },
   { id: "barrierDamage", label: "Damaged skin barrier", skinType: "dry" },
   { id: "fineLines", label: "Visible fine lines", skinType: "dry" },
-  { id: "dullComplexion", label: "Dull complexion", skinType: "dry" }, // (no product in your sample data yet)
+  { id: "dullComplexion", label: "Dull complexion", skinType: "dry" },
   { id: "irritation", label: "Easily irritated", skinType: "dry" },
   { id: "roughTexture", label: "Rough texture", skinType: "dry" },
 
-  // Oily skin (match DB ids)
   { id: "excessOil", label: "Excess oil production", skinType: "oily" },
   { id: "cloggedPores", label: "Clogged pores", skinType: "oily" },
   { id: "frequentBreakouts", label: "Frequent breakouts", skinType: "oily" },
@@ -35,7 +37,6 @@ const PROBLEMS = [
 
 const PROBLEM_BY_ID = Object.fromEntries(PROBLEMS.map((p) => [p.id, p]));
 
-// badge colors (tweak anytime)
 const BADGE_COLOR = {
   dryCheeks: "bg-purple-300",
   blackheads: "bg-blue-300",
@@ -52,7 +53,6 @@ const BADGE_COLOR = {
   roughTexture: "bg-teal-200",
 };
 
-// read selected problems from URL: ?problems=dryCheeks,blackheads
 function getSelectedProblemsFromURL(search) {
   const params = new URLSearchParams(search);
   const raw = params.get("problems");
@@ -61,11 +61,9 @@ function getSelectedProblemsFromURL(search) {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean)
-    // keep only known ids
     .filter((id) => PROBLEM_BY_ID[id]);
 }
 
-// also read skin type from URL: ?skin=oily
 function getSkinFromURL(search) {
   const params = new URLSearchParams(search);
   const skin = params.get("skin");
@@ -75,7 +73,7 @@ function getSkinFromURL(search) {
   return "";
 }
 
-const LS_FAV_KEY = "dermapop_favorites_v1";
+const LS_FAV_KEY = "dermapop_favorites_v2"; // bump key since we're switching to ids
 
 function HeartIcon({ filled }) {
   return (
@@ -96,7 +94,6 @@ function HeartIcon({ filled }) {
   );
 }
 
-// pretty string for actives like: "niacinamide 10%, zincPCA 1%"
 function formatActives(actives) {
   if (!actives || typeof actives !== "object") return "—";
   const entries = Object.entries(actives);
@@ -109,21 +106,9 @@ function formatActives(actives) {
 export default function ProductPage() {
   const location = useLocation();
 
-const [products, setProducts] = useState([]);
-const [loading, setLoading] = useState(true);
-
-useEffect(() => {
-  async function fetchProducts() {
-    const snap = await getDocs(collection(db, "products"));
-    setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    setLoading(false);
-  }
-  fetchProducts();
-}, []);
-
-  // supports BOTH:
-  // 1) /products?skin=oily&problems=blackheads,cloggedPores
-  // 2) navigate("/products", { state: { skinType: "oily", selectedProblems: [...] } })
+  // supports:
+  // /products?skin=oily&problems=blackheads,cloggedPores
+  // OR navigate("/products", { state: { skinType, selectedProblems } })
   const skinType = useMemo(() => {
     const fromState = location.state?.skinType;
     if (fromState === "oily" || fromState === "mixed" || fromState === "dry") return fromState;
@@ -140,12 +125,12 @@ useEffect(() => {
 
   const showBadges = selectedProblems.length >= 2;
 
-  // filters
+  // UI filters
   const [sortPrice, setSortPrice] = useState(""); // "", "asc", "desc"
   const [problemFilter, setProblemFilter] = useState("all"); // "all" or a problemId
   const [showWishlistOnly, setShowWishlistOnly] = useState(false);
 
-  // favorites
+  // favorites (now store Firestore product.id)
   const [favorites, setFavorites] = useState(() => {
     try {
       const raw = localStorage.getItem(LS_FAV_KEY);
@@ -159,9 +144,7 @@ useEffect(() => {
   useEffect(() => {
     try {
       localStorage.setItem(LS_FAV_KEY, JSON.stringify(Array.from(favorites)));
-    } catch {
-      // ignore
-    }
+    } catch { }
   }, [favorites]);
 
   const toggleFavorite = (productId) => {
@@ -173,33 +156,73 @@ useEffect(() => {
     });
   };
 
+  // 🔥 Firestore results (based on URL problems)
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchProducts() {
+      setLoading(true);
+      setErr("");
+
+      try {
+        if (!selectedProblems.length) {
+          if (!cancelled) setProducts([]);
+          return;
+        }
+
+        const q = query(
+          collection(db, "products"),
+          where("problemIds", "array-contains-any", selectedProblems)
+        );
+
+        const snap = await getDocs(q);
+
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+        // ✅ hard dedupe by Firestore id
+        const unique = Array.from(
+          new Map(list.map(p => [p.id, p])).values()
+        );
+
+        if (!cancelled) setProducts(unique);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) {
+          setErr("Failed to load products.");
+          setProducts([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProblems]);
+
   const visibleProducts = useMemo(() => {
     let base = products;
 
-    // ✅ match skin type first (your DB uses skinTypes: ["oily"])
+    // ✅ OPTIONAL client-side filter by skinType (Firestore limitation)
     if (skinType) {
       base = base.filter((p) => Array.isArray(p.skinTypes) && p.skinTypes.includes(skinType));
     }
 
-    // ✅ if user selected problems on previous page:
-    // show products that match ANY selected problem
-    if (selectedProblems.length) {
-      base = base.filter(
-        (p) =>
-          Array.isArray(p.problemIds) && p.problemIds.some((id) => selectedProblems.includes(id))
-      );
-    }
-
-    // optional dropdown filter (problem)
+    // dropdown filter
     if (problemFilter !== "all") {
       base = base.filter((p) => Array.isArray(p.problemIds) && p.problemIds.includes(problemFilter));
     }
 
     // wishlist-only
     if (showWishlistOnly) {
-      base = base.filter((p) => favorites.has(p.name)); // fallback below
-      // If you have unique IDs in Firestore later, swap to favorites.has(p.id)
-      // For now your seed objects don't include id, so using "name" as stable key.
+      base = base.filter((p) => favorites.has(p.id));
     }
 
     // sort
@@ -207,20 +230,19 @@ useEffect(() => {
     if (sortPrice === "desc") base = [...base].sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
 
     return base;
-  }, [skinType, selectedProblems, sortPrice, problemFilter, showWishlistOnly, favorites]);
+  }, [products, skinType, sortPrice, problemFilter, showWishlistOnly, favorites]);
 
   const problemOptionsForFilter = useMemo(() => {
-    // if user selected problems, show those; else show problems for this skin type (if provided)
     let list = PROBLEMS;
-
     if (skinType) list = list.filter((p) => p.skinType === skinType);
 
+    // if URL passed problems, show only those in dropdown
     if (selectedProblems.length) {
       const selectedSet = new Set(selectedProblems);
       list = list.filter((p) => selectedSet.has(p.id));
     }
 
-    // remove duplicates by id (because enlargedPores/blackheads exist under multiple skinTypes)
+    // remove duplicates by id
     const seen = new Set();
     return list.filter((p) => {
       if (seen.has(p.id)) return false;
@@ -229,27 +251,18 @@ useEffect(() => {
     });
   }, [skinType, selectedProblems]);
 
-  // ✅ IMPORTANT:
-  // Your products currently don't have `id` or `imageUrl`.
-  // - We'll use productKey = `${brand}__${name}` as an internal key
-  // - We'll show a placeholder "Image" box for now.
   const wishlistCount = favorites.size;
 
-  // helper: badge label for a product when multiple problems selected
   const getBadgeProblemForProduct = (p) => {
     if (!showBadges) return null;
-
     const matching = (p.problemIds || []).filter((id) => selectedProblems.includes(id));
-    if (!matching.length) return null;
-
-    // show the first matching problem
-    return matching[0];
+    return matching.length ? matching[0] : null;
   };
 
   return (
     <div className="min-h-screen bg-[#F3ECE6]">
       <main className="mx-auto max-w-7xl px-6 py-10 grid grid-cols-1 md:grid-cols-5 gap-8">
-        {/* LEFT: Filters (1/5) */}
+        {/* LEFT: Filters */}
         <aside className="md:col-span-1">
           <div className="rounded-2xl bg-white/70 backdrop-blur p-5 shadow-sm border border-black/5">
             <h2 className="text-[#1A2B56] font-semibold text-lg mb-4">Filters</h2>
@@ -262,17 +275,15 @@ useEffect(() => {
               </summary>
               <div className="pt-3 space-y-2">
                 <button
-                  className={`w-full text-left rounded-lg px-3 py-2 text-sm ${
-                    sortPrice === "asc" ? "bg-[#1A2B56] text-white" : "bg-white/70 text-[#1A2B56]"
-                  }`}
+                  className={`w-full text-left rounded-lg px-3 py-2 text-sm ${sortPrice === "asc" ? "bg-[#1A2B56] text-white" : "bg-white/70 text-[#1A2B56]"
+                    }`}
                   onClick={() => setSortPrice("asc")}
                 >
                   Lowest to highest
                 </button>
                 <button
-                  className={`w-full text-left rounded-lg px-3 py-2 text-sm ${
-                    sortPrice === "desc" ? "bg-[#1A2B56] text-white" : "bg-white/70 text-[#1A2B56]"
-                  }`}
+                  className={`w-full text-left rounded-lg px-3 py-2 text-sm ${sortPrice === "desc" ? "bg-[#1A2B56] text-white" : "bg-white/70 text-[#1A2B56]"
+                    }`}
                   onClick={() => setSortPrice("desc")}
                 >
                   Highest to lowest
@@ -292,7 +303,6 @@ useEffect(() => {
                 <span className="text-[#1A2B56] font-medium">Problem</span>
                 <span className="text-[#1A2B56]/60 group-open:rotate-180 transition">▾</span>
               </summary>
-
               <div className="pt-3">
                 <select
                   value={problemFilter}
@@ -311,7 +321,7 @@ useEffect(() => {
           </div>
         </aside>
 
-        {/* RIGHT: Product grid (4/5) */}
+        {/* RIGHT: Grid */}
         <section className="md:col-span-4">
           <div className="flex items-end justify-between mb-5">
             <div>
@@ -320,27 +330,33 @@ useEffect(() => {
                 {skinType ? `Skin type: ${skinType}` : "Skin type: (not provided)"}
                 {selectedProblems.length
                   ? ` • Problems: ${selectedProblems
-                      .map((id) => PROBLEM_BY_ID[id]?.label || id)
-                      .join(", ")}`
+                    .map((id) => PROBLEM_BY_ID[id]?.label || id)
+                    .join(", ")}`
                   : ""}
               </p>
             </div>
 
-            {/* Top-right Wish List toggle */}
             <button
               onClick={() => setShowWishlistOnly((v) => !v)}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold border transition ${
-                showWishlistOnly
+              className={`rounded-xl px-4 py-2 text-sm font-semibold border transition ${showWishlistOnly
                   ? "bg-[#1A2B56] text-white border-[#1A2B56]"
                   : "bg-white/70 text-[#1A2B56] border-black/10 hover:bg-white"
-              }`}
+                }`}
               title="Toggle Wish List"
             >
               Wish List{wishlistCount ? ` (${wishlistCount})` : ""}
             </button>
           </div>
 
-          {showWishlistOnly && visibleProducts.length === 0 ? (
+          {loading ? (
+            <div className="rounded-2xl bg-white/70 border border-black/5 p-8 text-[#1A2B56]/70">
+              Loading products…
+            </div>
+          ) : err ? (
+            <div className="rounded-2xl bg-white/70 border border-black/5 p-8 text-[#1A2B56]/70">
+              {err}
+            </div>
+          ) : showWishlistOnly && visibleProducts.length === 0 ? (
             <div className="rounded-2xl bg-white/70 border border-black/5 p-8 text-[#1A2B56]/70">
               No favorites yet. Tap the heart on a product to save it here.
             </div>
@@ -351,63 +367,43 @@ useEffect(() => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {visibleProducts.map((p) => {
-                const productKey = `${p.brand || "brand"}__${p.name || "name"}`;
-
-                // ✅ favorites key (since your objects don’t have id yet)
-                const favKey = p.name; // best stable key for now
-                const isFav = favorites.has(favKey);
+                const isFav = favorites.has(p.id);
 
                 const badgeProblemId = getBadgeProblemForProduct(p);
-                const badgeLabel = badgeProblemId ? PROBLEM_BY_ID[badgeProblemId]?.label || badgeProblemId : null;
-                const badgeClass = badgeProblemId ? BADGE_COLOR[badgeProblemId] || "bg-yellow-200" : "bg-yellow-200";
+                const badgeLabel = badgeProblemId ? (PROBLEM_BY_ID[badgeProblemId]?.label || badgeProblemId) : null;
+                const badgeClass = badgeProblemId ? (BADGE_COLOR[badgeProblemId] || "bg-yellow-200") : "bg-yellow-200";
 
                 return (
                   <div
-                    key={productKey}
+                    key={p.id}
                     className="rounded-2xl overflow-hidden bg-white/80 border border-black/5 shadow-sm hover:shadow-md transition"
                   >
-                    {/* TOP: image area */}
                     <div className="relative h-52 bg-gradient-to-br from-[#1A2B56]/10 to-[#1A2B56]/0 flex items-center justify-center">
-                      {/* your DB currently has no image field */}
                       <div className="text-[#1A2B56]/40 text-sm">Image</div>
 
-                      {/* Heart favorite (top-right) */}
                       <button
-                        onClick={() =>
-                          setFavorites((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(favKey)) next.delete(favKey);
-                            else next.add(favKey);
-                            return next;
-                          })
-                        }
-                        className={`absolute top-3 right-3 rounded-full p-2 shadow border transition ${
-                          isFav
+                        onClick={() => toggleFavorite(p.id)}
+                        className={`absolute top-3 right-3 rounded-full p-2 shadow border transition ${isFav
                             ? "bg-white text-red-500 border-red-200"
                             : "bg-white/90 text-[#1A2B56]/60 border-black/10 hover:text-red-500"
-                        }`}
+                          }`}
                         aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
                         title={isFav ? "Unfavorite" : "Favorite"}
                       >
                         <HeartIcon filled={isFav} />
                       </button>
 
-                      {/* Badge ONLY when multiple problems selected */}
                       {showBadges && badgeLabel && (
-                        <div
-                          className={`absolute bottom-3 right-3 ${badgeClass} text-black text-xs font-semibold px-3 py-1 rounded-full shadow`}
-                        >
+                        <div className={`absolute bottom-3 right-3 ${badgeClass} text-black text-xs font-semibold px-3 py-1 rounded-full shadow`}>
                           {badgeLabel}
                         </div>
                       )}
                     </div>
 
-                    {/* BOTTOM: info */}
                     <div className="p-4 space-y-2">
                       <div className="text-[#1A2B56] font-semibold leading-snug">{p.name}</div>
                       <div className="text-[#1A2B56]/70 text-sm">{p.brand}</div>
 
-                      {/* active ingredients % */}
                       <div className="text-[#1A2B56] text-sm">
                         <span className="text-[#1A2B56]/60">Actives: </span>
                         {formatActives(p.actives)}

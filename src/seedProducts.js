@@ -12,13 +12,15 @@ const products = [
   skinTypes: ["oily"],
   problemIds: ["excessOil", "enlargedPores"],
   actives: { niacinamide: 10, zincPCA: 1 },
-  ingredientsList: ["Water", "Niacinamide", "Zinc PCA", "Glycerin"]
+  ingredientsList: ["Water", "Niacinamide", "Zinc PCA", "Glycerin"],
+  imageUrl: "/the-ordinary-niacinamide.webp"
 },
 
 {
   name: "The Ordinary Salicylic Acid 2% Solution",
   brand: "The Ordinary",
   price: 8.69,
+  imageUrl: "/the-ordinary-salicylic.webp",
   skinTypes: ["oily"],
   problemIds: ["cloggedPores", "blackheads"],
   actives: { salicylicAcid: 2 },
@@ -29,6 +31,7 @@ const products = [
   name: "The Ordinary Azelaic Acid Suspension 10%",
   brand: "The Ordinary",
   price: 15.8,
+  imageUrl: "/the-ordinary-azelaic.webp",
   skinTypes: ["oily"],
   problemIds: ["frequentBreakouts"],
   actives: { azelaicAcid: 10 },
@@ -39,6 +42,7 @@ const products = [
   name: "Origins Charcoal Mask",
   brand: "Origins",
   price: 36,
+  imageUrl: "/origins-charcoal-mask",
   skinTypes: ["oily"],
   problemIds: ["blackheads"],
   actives: { charcoal: 1 },
@@ -49,6 +53,7 @@ const products = [
   name: "Innisfree Green Tea Serum",
   brand: "Innisfree",
   price: 32,
+  imageUrl: "/innisfree-green-tea",
   skinTypes: ["oily"],
   problemIds: ["shinyAppearance"],
   actives: { greenTeaExtract: 2 },
@@ -58,6 +63,7 @@ const products = [
 {
   name: "Topicals Faded Serum",
   brand: "Topicals",
+  imageUrl: "/topicals-faded.jpg",
   price: 38,
   skinTypes: ["oily"],
   problemIds: ["postAcneMarks"],
@@ -70,6 +76,7 @@ const products = [
 {
   name: "Glow Recipe Niacinamide Dew Drops",
   brand: "Glow Recipe",
+  imageUrl: "/glow-recipe-dew-drops.webp",
   price: 50,
   skinTypes: ["mixed"],
   problemIds: ["oilyTzone"],
@@ -81,8 +88,9 @@ const products = [
   name: "The Ordinary Hyaluronic Acid 2% + B5",
   brand: "The Ordinary",
   price: 8.9,
-  skinTypes: ["mixed"],
-  problemIds: ["dryCheeks"],
+  imageUrl: "/the-ordinary-hyaluronic.webp",
+  skinTypes: ["mixed", "dry"],
+  problemIds: ["dryCheeks", "tightness"],
   actives: { hyaluronicAcid: 2 },
   ingredientsList: ["Hyaluronic Acid", "Panthenol", "Water"]
 },
@@ -91,6 +99,7 @@ const products = [
   name: "Paula’s Choice Zinc Booster",
   brand: "Paula's Choice",
   price: 49,
+  imageUrl: "/paulas-choice-zinc.webp",
   skinTypes: ["mixed"],
   problemIds: ["enlargedPores"],
   actives: { zincPCA: 1 },
@@ -101,6 +110,7 @@ const products = [
   name: "The Ordinary Alpha Arbutin 2%",
   brand: "The Ordinary",
   price: 10,
+  imageUrl: "/the-ordinary-alpha-arbutin.webp",
   skinTypes: ["mixed"],
   problemIds: ["unevenTone"],
   actives: { alphaArbutin: 2 },
@@ -111,6 +121,7 @@ const products = [
   name: "Sunday Riley Vitamin C Serum",
   brand: "Sunday Riley",
   price: 85,
+  imageUrl: "/sunday-riley-vitamin-c.webp",
   skinTypes: ["mixed"],
   problemIds: ["dullness"],
   actives: { vitaminC: 15 },
@@ -120,19 +131,10 @@ const products = [
 /* ================= DRY SKIN ================= */
 
 {
-  name: "The Ordinary Hyaluronic Acid 2% + B5",
-  brand: "The Ordinary",
-  price: 8.9,
-  skinTypes: ["dry"],
-  problemIds: ["tightness"],
-  actives: { hyaluronicAcid: 2 },
-  ingredientsList: ["Hyaluronic Acid", "Panthenol", "Water"]
-},
-
-{
   name: "CeraVe Moisturizing Cream",
   brand: "CeraVe",
   price: 18,
+  imageUrl: "/cerave-moisturizing.avif",
   skinTypes: ["dry"],
   problemIds: ["flaking", "barrierDamage"],
   actives: { glycerin: 5, ceramides: 3 },
@@ -143,6 +145,7 @@ const products = [
   name: "Drunk Elephant Protini Cream",
   brand: "Drunk Elephant",
   price: 68,
+  imageUrl: "/drunk-elephant-protini.webp",
   skinTypes: ["dry"],
   problemIds: ["fineLines"],
   actives: { peptides: 2 },
@@ -153,6 +156,7 @@ const products = [
   name: "La Roche-Posay Cicaplast B5",
   brand: "La Roche-Posay",
   price: 15,
+  imageUrl: "/lrp-cicaplast.webp",
   skinTypes: ["dry"],
   problemIds: ["irritation"],
   actives: { panthenol: 5 },
@@ -163,6 +167,7 @@ const products = [
   name: "The Ordinary Lactic Acid 10%",
   brand: "The Ordinary",
   price: 7,
+  imageUrl: "/the-ordinary-lactic.webp",
   skinTypes: ["dry"],
   problemIds: ["roughTexture"],
   actives: { lacticAcid: 10 },
