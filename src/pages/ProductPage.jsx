@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
@@ -104,6 +104,7 @@ function formatActives(actives) {
 
 export default function ProductPage() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // supports:
   // /products?skin=oily&problems=blackheads,cloggedPores
@@ -411,9 +412,20 @@ export default function ProductPage() {
                   : "bg-yellow-200";
 
                 return (
+                  // <div
+                  //   key={p.id}
+                  //   className="rounded-2xl overflow-hidden bg-white/80 border border-black/5 shadow-sm hover:shadow-md transition"
+                  // >
                   <div
                     key={p.id}
-                    className="rounded-2xl overflow-hidden bg-white/80 border border-black/5 shadow-sm hover:shadow-md transition"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/product/${p.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        navigate(`/product/${p.id}`);
+                    }}
+                    className="rounded-2xl overflow-hidden bg-white/80 border border-black/5 shadow-sm hover:shadow-md transition cursor-pointer"
                   >
                     <div className="relative h-52 bg-gradient-to-br from-[#1A2B56]/10 to-[#1A2B56]/0 flex items-center justify-center">
                       <img
@@ -426,7 +438,11 @@ export default function ProductPage() {
                       />
 
                       <button
-                        onClick={() => toggleFavorite(p.id)}
+                        // onClick={() => toggleFavorite(p.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(p.id);
+                        }}
                         className={`absolute top-3 right-3 rounded-full p-2 shadow border transition ${
                           isFav
                             ? "bg-white text-red-500 border-red-200"
