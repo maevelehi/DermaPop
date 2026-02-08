@@ -2,11 +2,11 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 import { setDoc } from "firebase/firestore";
 import { skinConfig } from "../data/skinConfig";
-import { useEffect } from "react";
-import { collection, getDocs, query, where, limit } from "firebase/firestore";
+// import { useEffect } from "react";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 export default function ProblemSelector() {
   const navigate = useNavigate();
@@ -21,26 +21,6 @@ export default function ProblemSelector() {
   const problems = skinConfig[skin]?.problems || [];
 
   const [selected, setSelected] = useState([]);
-  //   useEffect(() => {
-  //     if (!skin) return;
-
-  //     (async () => {
-  //       const q = query(
-  //         collection(db, "products"),
-  //         where("skinTypes", "array-contains", skin),
-  //         limit(20),
-  //       );
-
-  //       const snap = await getDocs(q);
-
-  //       console.log(
-  //         "Products for selected skin:",
-  //         skin,
-  //         snap.docs.map((d) => ({ id: d.id, ...d.data() })),
-  //       );
-  //     })();
-  //   }, [skin]);
-
   const toggleProblem = (key) => {
     setSelected((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
