@@ -1,46 +1,4 @@
-Maeve Le
-maevele
-Online
 
-This is the start of the #file-sharing channel. 
-Maeve Le — Yesterday at 3:12 PM
-VITE_FIREBASE_API_KEY="AIzaSyAs_YRSLDnZJwip-ZlE-ZxCkzt8u1QjHyk",
-VITE_FIREBASE_AUTH_DOMAIN="dermapop-9bb97.firebaseapp.com",
-VITE_FIREBASE_PROJECT_ID="dermapop-9bb97",
-VITE_FIREBASE_STORAGE_BUCKET="dermapop-9bb97.firebasestorage.app",
-VITE_FIREBASE_MESSAGING_SENDER_ID="858081632098",
-VITE_FIREBASE_APP_ID="1:858081632098:web:1d413ed3e6bccf30e7163b",
-Roxanne — Yesterday at 4:30 PM
-Image
-Roxanne — Yesterday at 4:43 PM
-i cant fix it. tried chatgpt and gemini and started from the beginning but nothing shows on that local webpage...
-Maeve Le — Yesterday at 5:07 PM
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-Roxanne — Yesterday at 5:57 PM
-Image
-Image
-Image
-Roxanne — Yesterday at 6:17 PM
-[#1A2B56]
-@Maeve Le
-[#F3ECE6]
-background
-@Maeve Le
-Roxanne — Yesterday at 6:53 PM
-You’re currently using Tailwind’s default font stack (system sans-serif).
-Roxanne — Yesterday at 7:19 PM
-Permission to maevelehi/DermaPop.git denied to xguo1001.
-Maeve Le — Yesterday at 7:22 PM
-https://github.com/maevelehi/DermaPop/invitations
-Roxanne — Yesterday at 11:45 PM
-https://developer.sephora.com/accounts/create.do
-Roxanne — 1:33 AM
-xiaoran20220722@gmail.com
-Roxanne — 10:58 AM
-https://devpost.com/software/1188640/joins/lwc0ZFiLnkmNWu4xHHfpKw
-Roxanne — 11:48 AM
 ## Inspiration
 Skincare is an important components of healthcare. Finding skincare products that actually work for individual skin concerns is overwhelming. Ingredient lists are long, marketing claims are confusing, and many people end up buying products that don’t truly address their needs. We wanted to build a tool that simplifies skincare decisions and effectively deal with skin problems by focusing on what really matters: skin type, specific concerns, and effective ingredients.
 
