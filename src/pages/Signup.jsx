@@ -42,7 +42,6 @@ export default function SignUp() {
       id="signupView"
       className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 fade-slide font-sans"
     >
-      <img src="/logo.png" alt="App Logo" className="auth-image mb-6" />
       <h1 className="text-2xl font-bold mb-6">Sign Up</h1>
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
@@ -79,10 +78,10 @@ export default function SignUp() {
         Create Account
       </button>
 
-      <small className="mt-4">
+      <small className="mt-4 font-sans">
         Already have an account?{" "}
         <span
-          className="text-blue-500 cursor-pointer"
+          className="text-blue-500 cursor-pointer font-sans"
           onClick={() => navigate("/login")}
         >
           Login
