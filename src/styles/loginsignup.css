@@ -1,0 +1,97 @@
+/* Entrance animation for auth-image */
+.auth-image {
+  display: block;
+  margin: 0 auto 30px auto;
+  width: 100%;
+  max-width: 420px;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 10px;
+
+  /* Entrance animation */
+  opacity: 0; /* start invisible */
+  transform: translateY(-50px); /* start slightly above */
+  animation: slideFadeIn 1s ease-out forwards;
+}
+
+/* Define the animation */
+@keyframes slideFadeIn {
+  to {
+    opacity: 1; /* fade in */
+    transform: translateY(0); /* slide to original position */
+  }
+}
+
+.fade-slide {
+  opacity: 0;
+  transform: translateY(-50px);
+  animation: slideFadeIn 1s ease-out forwards;
+}
+
+/* Add nice spacing between form inputs */
+#loginView .form-control,
+#signupView .form-control {
+  padding: 12px;
+  margin-bottom: 18px;
+}
+
+#loginView button,
+#signupView button {
+  padding: 12px;
+  font-size: 16px;
+}
+
+#loginView small,
+#signupView small {
+  margin-top: 20px;
+  display: block;
+}
+
+/* Inputs and buttons in login/signup forms */
+#loginForm .form-control,
+#loginForm button,
+#signupForm .form-control,
+#signupForm button {
+  border-radius: 12px; /* adjust this for more or less rounding */
+}
+
+/* Optional: make button text bold and slightly bigger */
+#loginForm button,
+#signupForm button {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+/* Animate all content inside login + signup pages except navbar/footer */
+#loginView *:not(nav):not(footer):not(site-navbar):not(site-footer),
+#signupView *:not(nav):not(footer):not(site-navbar):not(site-footer) {
+  opacity: 0;
+  transform: translateY(-50px);
+  animation: slideFadeIn 1s ease-out forwards;
+}
+
+/* Stagger animation so they appear smoothly */
+#loginView *:nth-child(1),
+#signupView *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+#loginView *:nth-child(2),
+#signupView *:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+#loginView *:nth-child(3),
+#signupView *:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+#loginView *:nth-child(4),
+#signupView *:nth-child(4) {
+  animation-delay: 0.25s;
+}
+
+#loginView *:nth-child(5),
+#signupView *:nth-child(5) {
+  animation-delay: 0.3s;
+}
