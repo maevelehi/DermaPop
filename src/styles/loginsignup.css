@@ -1,0 +1,143 @@
+Entrance animation for auth-image .auth-image {
+  display: block;
+  margin: 0 auto 30px auto;
+  width: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+
+  /* Entrance animation */
+  opacity: 0; /* start invisible */
+  transform: translateY(-50px); /* start slightly above */
+  animation: slideFadeIn 1s ease-out forwards;
+}
+
+.auth-image {
+  max-width: 500px; 
+  margin: 0;
+  height: auto;
+}
+/* Define the animation */
+@keyframes slideFadeIn {
+  to {
+    opacity: 1; /* fade in */
+    transform: translateY(0); /* slide to original position */
+  }
+}
+
+.fade-slide {
+  opacity: 0;
+  transform: translateY(-50px);
+  animation: slideFadeIn 1s ease-out forwards;
+}
+
+/* Add nice spacing between form inputs */
+#loginView .form-control,
+#signupView .form-control {
+  width: 100%;
+  max-width: 420px;
+  padding: 12px;
+  margin-bottom: 18px;
+}
+
+#loginView .btn {
+  width: 100%;
+  max-width: 420px;
+  background-color: #1A2B56;
+  color: white;
+  border: none;
+  border-radius: 12px;
+}
+
+
+#loginView button,
+#signupView button {
+  padding: 12px;
+  font-size: 16px;
+}
+
+#loginView small,
+#signupView small {
+  margin-top: 20px;
+  display: block;
+}
+
+#loginView .form-control {
+  border-radius: 12px;
+}
+
+
+#loginView {
+  background-color: #F3ECE6; /* light blue-gray, change to any color */
+}
+
+/* Signup inputs and button */
+#signupView .form-control,
+#signupView .btn {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;  /* same as login */
+}
+
+/* Optional: make button orange like login */
+#signupView .btn {
+  background-color: #1A2B56;
+  color: white;
+  border: none;
+}
+
+#signupView {
+  background-color: #F3ECE6; /* light blue-gray, change to any color */
+}
+
+/* Optional: make button text bold and slightly bigger */
+#loginForm button,
+#signupForm button {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+/* Animate all content inside login + signup pages except navbar/footer */
+#loginView *:not(nav):not(footer):not(site-navbar):not(site-footer),
+#signupView *:not(nav):not(footer):not(site-navbar):not(site-footer) {
+  opacity: 0;
+  transform: translateY(-50px);
+  animation: slideFadeIn 1s ease-out forwards;
+}
+
+/* Stagger animation so they appear smoothly */
+#loginView *:nth-child(1),
+#signupView *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+#loginView *:nth-child(2),
+#signupView *:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+#loginView *:nth-child(3),
+#signupView *:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+#loginView *:nth-child(4),
+#signupView *:nth-child(4) {
+  animation-delay: 0.25s;
+}
+
+#loginView *:nth-child(5),
+#signupView *:nth-child(5) {
+  animation-delay: 0.3s;
+}
+
+#signupView .form-control:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset; /* forces white background */
+  -webkit-text-fill-color: #000; /* text color */
+  transition: background-color 5000s ease-in-out 0s; /* prevents flicker */
+}
+
+#loginView .form-control:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset; /* forces white background */
+  -webkit-text-fill-color: #000; /* text color */
+  transition: background-color 5000s ease-in-out 0s; /* prevents flicker */
+}
