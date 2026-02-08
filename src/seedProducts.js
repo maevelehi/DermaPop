@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, limit, query } from "firebase/firestore";
 
 const products = [
 
@@ -134,7 +134,7 @@ const products = [
   name: "CeraVe Moisturizing Cream",
   brand: "CeraVe",
   price: 18,
-  imageUrl: "/cerave-moisturizing.avif",
+  imageUrl: "/cerave-moisturizing.jpg",
   skinTypes: ["dry"],
   problemIds: ["flaking", "barrierDamage"],
   actives: { glycerin: 5, ceramides: 3 },
@@ -176,11 +176,21 @@ const products = [
 
 ];
 
-export default products;
+// export default products;
 
-export async function seedProducts() {
-  for (const p of products) {
-    await addDoc(collection(db, "products"), p);
+export async function seedProductsIfEmpty() {
+  const productsRef = collection(db, "products");
+
+  // ✅ check if collection already has data
+  const existingSnap = await getDocs(query(productsRef, limit(1)));
+  if (!existingSnap.empty) {
+    console.log("Seeding skipped: products already exist.");
+    return;
   }
+
+  for (const p of products) {
+    await addDoc(productsRef, p);
+  }
+
   console.log("DONE SEEDING");
 }

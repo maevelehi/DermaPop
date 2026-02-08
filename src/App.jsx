@@ -5,25 +5,14 @@ import SignUp from "./pages/Signup";
 import SkinType from "./pages/SkinType";
 import ProblemSelector from "./pages/ProblemSelector";
 import ProductDetail from "./pages/ProductDetail";
-// import { useEffect, useState } from "react";
-// import { seedProducts } from "./seedProducts";
+import { useEffect } from "react";
+import { seedProductsIfEmpty } from "./seedProducts";
 
 
 function App() {
-  // const [seeded, setSeeded] = useState(false);
-
-  // useEffect(() => {
-  //   if (seeded) return;
-
-  //   const runSeed = async () => {
-  //     await seedProducts();
-  //     setSeeded(true);
-  //     console.log("Products seeded");
-  //   };
-
-  //   runSeed();
-  // }, [seeded]);
-
+  useEffect(() => {
+    seedProductsIfEmpty().catch(console.error);
+  }, []);
 
   return (
     <Router>
