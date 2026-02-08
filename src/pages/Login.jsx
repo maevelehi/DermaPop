@@ -28,7 +28,7 @@ export default function Login() {
       className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 fade-slide font-sans"
     >
       <img src="/login.jpg" alt="Logo" className="auth-image mb-6" />
-      <h1 className="text-2xl font-bold mb-6">Login</h1>
+      <h1 className="text-2xl font-bold mb-6 font-sans">Login</h1>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <input
         type="email"
