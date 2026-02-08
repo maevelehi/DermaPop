@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import InputCard from "../components/InputCard";
-import AuthButton from "../components/AuthBtn";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
 import "../styles/loginsignup.css";
+import { authErrorMessage } from "../utils/authErrorMessage";
 
 export default function SignUp() {
   const [firstName, setFirstName] = useState("");
@@ -13,27 +12,52 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const timerRef = useRef(null);
+
+  const showError = (msg) => {
+    setError(msg || "");
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setError(""), 5000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const handleSignUp = async () => {
+    setError("");
+
+    const trimmedEmail = email.trim();
+    if (!firstName.trim() || !lastName.trim() || !trimmedEmail || !password) {
+      showError("Please fill in first name, last name, email, and password.");
+      return;
+    }
+
+    setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        email,
+        trimmedEmail,
         password,
       );
       const uid = userCredential.user.uid;
 
-      // save extra info in Firestore
       await setDoc(doc(db, "users", uid), {
-        firstName,
-        lastName,
-        email,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: trimmedEmail,
       });
 
       navigate("/skin-type");
     } catch (err) {
-      setError(err.message);
+      showError(authErrorMessage(err));
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,7 +66,8 @@ export default function SignUp() {
       id="signupView"
       className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 fade-slide font-sans"
     >
-      <h1 className="text-2xl font-bold mb-6">Sign Up</h1>
+      <h1 className="text-4xl font-bold mb-6">Sign Up</h1>
+
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <input
@@ -74,11 +99,11 @@ export default function SignUp() {
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      <button className="btn" onClick={handleSignUp}>
-        Create Account
+      <button className="btn" onClick={handleSignUp} disabled={loading}>
+        {loading ? "Creating..." : "Create Account"}
       </button>
 
-      <small className="mt-4 font-sans">
+      <p className="mt-4 font-sans">
         Already have an account?{" "}
         <span
           className="text-blue-500 cursor-pointer font-sans"
@@ -86,7 +111,7 @@ export default function SignUp() {
         >
           Login
         </span>
-      </small>
+      </p>
     </div>
   );
 }

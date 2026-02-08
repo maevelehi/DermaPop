@@ -1,89 +1,83 @@
 import { useMemo, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-/**
- * Problems (from your doc)
- * - Mixed (7)
- * - Dry (7)
- * - Oily (7)
- */
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
+
 const PROBLEMS = [
-  // Mixed skin
+  // Mixed skin (match DB ids)
   { id: "oilyTzone", label: "Oily T-zone", skinType: "mixed" },
   { id: "dryCheeks", label: "Dry cheeks", skinType: "mixed" },
-  { id: "enlargedPores_mixed", label: "Enlarged pores", skinType: "mixed" },
-  { id: "blackheads_mixed", label: "Blackheads", skinType: "mixed" },
-  { id: "occasionalBreakouts", label: "Occasional breakouts", skinType: "mixed" },
-  { id: "unevenSkinTone_mixed", label: "Uneven skin tone", skinType: "mixed" },
-  { id: "dullness_mixed", label: "Dullness", skinType: "mixed" },
+  { id: "enlargedPores", label: "Enlarged pores", skinType: "mixed" },
+  { id: "blackheads", label: "Blackheads", skinType: "mixed" },
+  { id: "occasionalBreakouts", label: "Occasional breakouts", skinType: "mixed" }, // (no product in your sample data yet)
+  { id: "unevenTone", label: "Uneven skin tone", skinType: "mixed" },
+  { id: "dullness", label: "Dullness", skinType: "mixed" },
 
-  // Dry skin
+  // Dry skin (match DB ids)
   { id: "tightness", label: "Tightness", skinType: "dry" },
-  { id: "flakingPeeling", label: "Flaking / peeling", skinType: "dry" },
-  { id: "damagedBarrier", label: "Damaged skin barrier", skinType: "dry" },
+  { id: "flaking", label: "Flaking / peeling", skinType: "dry" },
+  { id: "barrierDamage", label: "Damaged skin barrier", skinType: "dry" },
   { id: "fineLines", label: "Visible fine lines", skinType: "dry" },
-  { id: "dullComplexion", label: "Dull complexion", skinType: "dry" },
-  { id: "easilyIrritated", label: "Easily irritated", skinType: "dry" },
+  { id: "dullComplexion", label: "Dull complexion", skinType: "dry" }, // (no product in your sample data yet)
+  { id: "irritation", label: "Easily irritated", skinType: "dry" },
   { id: "roughTexture", label: "Rough texture", skinType: "dry" },
 
-  // Oily skin
+  // Oily skin (match DB ids)
   { id: "excessOil", label: "Excess oil production", skinType: "oily" },
   { id: "cloggedPores", label: "Clogged pores", skinType: "oily" },
   { id: "frequentBreakouts", label: "Frequent breakouts", skinType: "oily" },
-  { id: "enlargedPores_oily", label: "Enlarged pores", skinType: "oily" },
-  { id: "blackheads_oily", label: "Blackheads", skinType: "oily" },
+  { id: "enlargedPores", label: "Enlarged pores", skinType: "oily" },
+  { id: "blackheads", label: "Blackheads", skinType: "oily" },
   { id: "shinyAppearance", label: "Shiny appearance", skinType: "oily" },
   { id: "postAcneMarks", label: "Post-acne marks", skinType: "oily" },
 ];
 
 const PROBLEM_BY_ID = Object.fromEntries(PROBLEMS.map((p) => [p.id, p]));
 
-// badge colors for each problem (you can tweak)
+// badge colors (tweak anytime)
 const BADGE_COLOR = {
   dryCheeks: "bg-purple-300",
-  blackheads_mixed: "bg-blue-300",
-  blackheads_oily: "bg-blue-300",
-  // default fallback handled below
+  blackheads: "bg-blue-300",
+  cloggedPores: "bg-blue-200",
+  excessOil: "bg-yellow-200",
+  frequentBreakouts: "bg-red-200",
+  enlargedPores: "bg-emerald-200",
+  dullness: "bg-amber-200",
+  unevenTone: "bg-indigo-200",
+  postAcneMarks: "bg-pink-200",
+  irritation: "bg-orange-200",
+  barrierDamage: "bg-lime-200",
+  flaking: "bg-slate-200",
+  roughTexture: "bg-teal-200",
 };
 
+// read selected problems from URL: ?problems=dryCheeks,blackheads
 function getSelectedProblemsFromURL(search) {
   const params = new URLSearchParams(search);
-  const raw = params.get("problems"); // e.g. "dryCheeks,blackheads_mixed"
+  const raw = params.get("problems");
   if (!raw) return [];
   return raw
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean)
-    .filter((id) => PROBLEM_BY_ID[id]); // keep only valid ids
+    // keep only known ids
+    .filter((id) => PROBLEM_BY_ID[id]);
 }
 
-// create 5 products per problem (21 problems * 5 = 105)
-function buildMockProducts() {
-  const perProblem = 5;
-  const list = [];
-
-  for (const problem of PROBLEMS) {
-    for (let i = 1; i <= perProblem; i++) {
-      list.push({
-        id: `${problem.id}__p${i}`,
-        problemId: problem.id, // IMPORTANT: one product belongs to one problem bucket for badge
-        name: `Product ${i} for ${problem.label}`,
-        brand: i % 2 === 0 ? "CeraVe" : "The Ordinary",
-        active: i % 2 === 0 ? "Active 2% (placeholder)" : "Active 10% (placeholder)",
-        price: Number((9.99 + i * 3.5 + (problem.id.length % 4) * 2).toFixed(2)),
-        imageUrl: null, // you can replace with real image later
-      });
-    }
-  }
-  return list;
+// also read skin type from URL: ?skin=oily
+function getSkinFromURL(search) {
+  const params = new URLSearchParams(search);
+  const skin = params.get("skin");
+  if (!skin) return "";
+  const v = skin.toLowerCase();
+  if (v === "oily" || v === "mixed" || v === "dry") return v;
+  return "";
 }
-
-const ALL_PRODUCTS = buildMockProducts();
 
 const LS_FAV_KEY = "dermapop_favorites_v1";
 
 function HeartIcon({ filled }) {
-  // simple inline SVG so you don't need extra libraries
   return (
     <svg
       width="20"
@@ -102,12 +96,40 @@ function HeartIcon({ filled }) {
   );
 }
 
+// pretty string for actives like: "niacinamide 10%, zincPCA 1%"
+function formatActives(actives) {
+  if (!actives || typeof actives !== "object") return "—";
+  const entries = Object.entries(actives);
+  if (!entries.length) return "—";
+  return entries
+    .map(([k, v]) => `${k} ${typeof v === "number" ? `${v}%` : String(v)}`)
+    .join(", ");
+}
+
 export default function ProductPage() {
   const location = useLocation();
 
+const [products, setProducts] = useState([]);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  async function fetchProducts() {
+    const snap = await getDocs(collection(db, "products"));
+    setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    setLoading(false);
+  }
+  fetchProducts();
+}, []);
+
   // supports BOTH:
-  // 1) navigate("/products?problems=dryCheeks,blackheads_mixed")
-  // 2) navigate("/products", { state: { selectedProblems: ["dryCheeks"] } })
+  // 1) /products?skin=oily&problems=blackheads,cloggedPores
+  // 2) navigate("/products", { state: { skinType: "oily", selectedProblems: [...] } })
+  const skinType = useMemo(() => {
+    const fromState = location.state?.skinType;
+    if (fromState === "oily" || fromState === "mixed" || fromState === "dry") return fromState;
+    return getSkinFromURL(location.search);
+  }, [location.search, location.state]);
+
   const selectedProblems = useMemo(() => {
     const fromState = location.state?.selectedProblems;
     if (Array.isArray(fromState) && fromState.length) {
@@ -121,11 +143,9 @@ export default function ProductPage() {
   // filters
   const [sortPrice, setSortPrice] = useState(""); // "", "asc", "desc"
   const [problemFilter, setProblemFilter] = useState("all"); // "all" or a problemId
-
-  // wishlist toggle (view mode)
   const [showWishlistOnly, setShowWishlistOnly] = useState(false);
 
-  // favorites: store product IDs
+  // favorites
   const [favorites, setFavorites] = useState(() => {
     try {
       const raw = localStorage.getItem(LS_FAV_KEY);
@@ -136,7 +156,6 @@ export default function ProductPage() {
     }
   });
 
-  // persist favorites to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(LS_FAV_KEY, JSON.stringify(Array.from(favorites)));
@@ -155,37 +174,77 @@ export default function ProductPage() {
   };
 
   const visibleProducts = useMemo(() => {
-    let base = ALL_PRODUCTS;
+    let base = products;
 
-    // if user selected problems on previous page -> only show those buckets
+    // ✅ match skin type first (your DB uses skinTypes: ["oily"])
+    if (skinType) {
+      base = base.filter((p) => Array.isArray(p.skinTypes) && p.skinTypes.includes(skinType));
+    }
+
+    // ✅ if user selected problems on previous page:
+    // show products that match ANY selected problem
     if (selectedProblems.length) {
-      base = base.filter((p) => selectedProblems.includes(p.problemId));
+      base = base.filter(
+        (p) =>
+          Array.isArray(p.problemIds) && p.problemIds.some((id) => selectedProblems.includes(id))
+      );
     }
 
-    // optional filter dropdown (your "problem filter")
+    // optional dropdown filter (problem)
     if (problemFilter !== "all") {
-      base = base.filter((p) => p.problemId === problemFilter);
+      base = base.filter((p) => Array.isArray(p.problemIds) && p.problemIds.includes(problemFilter));
     }
 
-    // wishlist-only mode
+    // wishlist-only
     if (showWishlistOnly) {
-      base = base.filter((p) => favorites.has(p.id));
+      base = base.filter((p) => favorites.has(p.name)); // fallback below
+      // If you have unique IDs in Firestore later, swap to favorites.has(p.id)
+      // For now your seed objects don't include id, so using "name" as stable key.
     }
 
-    // sort price
-    if (sortPrice === "asc") base = [...base].sort((a, b) => a.price - b.price);
-    if (sortPrice === "desc") base = [...base].sort((a, b) => b.price - a.price);
+    // sort
+    if (sortPrice === "asc") base = [...base].sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+    if (sortPrice === "desc") base = [...base].sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
 
     return base;
-  }, [selectedProblems, sortPrice, problemFilter, showWishlistOnly, favorites]);
+  }, [skinType, selectedProblems, sortPrice, problemFilter, showWishlistOnly, favorites]);
 
   const problemOptionsForFilter = useMemo(() => {
-    // if user selected problems, only show those in dropdown; else show all
-    const ids = selectedProblems.length ? selectedProblems : PROBLEMS.map((p) => p.id);
-    return ids.map((id) => PROBLEM_BY_ID[id]).filter(Boolean);
-  }, [selectedProblems]);
+    // if user selected problems, show those; else show problems for this skin type (if provided)
+    let list = PROBLEMS;
 
+    if (skinType) list = list.filter((p) => p.skinType === skinType);
+
+    if (selectedProblems.length) {
+      const selectedSet = new Set(selectedProblems);
+      list = list.filter((p) => selectedSet.has(p.id));
+    }
+
+    // remove duplicates by id (because enlargedPores/blackheads exist under multiple skinTypes)
+    const seen = new Set();
+    return list.filter((p) => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
+  }, [skinType, selectedProblems]);
+
+  // ✅ IMPORTANT:
+  // Your products currently don't have `id` or `imageUrl`.
+  // - We'll use productKey = `${brand}__${name}` as an internal key
+  // - We'll show a placeholder "Image" box for now.
   const wishlistCount = favorites.size;
+
+  // helper: badge label for a product when multiple problems selected
+  const getBadgeProblemForProduct = (p) => {
+    if (!showBadges) return null;
+
+    const matching = (p.problemIds || []).filter((id) => selectedProblems.includes(id));
+    if (!matching.length) return null;
+
+    // show the first matching problem
+    return matching[0];
+  };
 
   return (
     <div className="min-h-screen bg-[#F3ECE6]">
@@ -242,7 +301,7 @@ export default function ProductPage() {
                 >
                   <option value="all">All</option>
                   {problemOptionsForFilter.map((p) => (
-                    <option key={p.id} value={p.id}>
+                    <option key={`${p.skinType}__${p.id}`} value={p.id}>
                       {p.label}
                     </option>
                   ))}
@@ -258,12 +317,12 @@ export default function ProductPage() {
             <div>
               <h1 className="text-[#1A2B56] text-2xl font-bold">Recommended Products</h1>
               <p className="text-[#1A2B56]/70 text-sm mt-1">
+                {skinType ? `Skin type: ${skinType}` : "Skin type: (not provided)"}
                 {selectedProblems.length
-                  ? `Showing products for: ${selectedProblems
-                      .map((id) => PROBLEM_BY_ID[id]?.label)
-                      .filter(Boolean)
+                  ? ` • Problems: ${selectedProblems
+                      .map((id) => PROBLEM_BY_ID[id]?.label || id)
                       .join(", ")}`
-                  : "No problems selected (showing all mock products)."}
+                  : ""}
               </p>
             </div>
 
@@ -281,34 +340,47 @@ export default function ProductPage() {
             </button>
           </div>
 
-          {/* Empty state for wishlist */}
           {showWishlistOnly && visibleProducts.length === 0 ? (
             <div className="rounded-2xl bg-white/70 border border-black/5 p-8 text-[#1A2B56]/70">
               No favorites yet. Tap the heart on a product to save it here.
             </div>
+          ) : visibleProducts.length === 0 ? (
+            <div className="rounded-2xl bg-white/70 border border-black/5 p-8 text-[#1A2B56]/70">
+              No products match your current filters.
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {visibleProducts.map((p) => {
-                const problemLabel = PROBLEM_BY_ID[p.problemId]?.label || "Problem";
-                const badgeClass = BADGE_COLOR[p.problemId] || "bg-yellow-200";
-                const isFav = favorites.has(p.id);
+                const productKey = `${p.brand || "brand"}__${p.name || "name"}`;
+
+                // ✅ favorites key (since your objects don’t have id yet)
+                const favKey = p.name; // best stable key for now
+                const isFav = favorites.has(favKey);
+
+                const badgeProblemId = getBadgeProblemForProduct(p);
+                const badgeLabel = badgeProblemId ? PROBLEM_BY_ID[badgeProblemId]?.label || badgeProblemId : null;
+                const badgeClass = badgeProblemId ? BADGE_COLOR[badgeProblemId] || "bg-yellow-200" : "bg-yellow-200";
 
                 return (
                   <div
-                    key={p.id}
+                    key={productKey}
                     className="rounded-2xl overflow-hidden bg-white/80 border border-black/5 shadow-sm hover:shadow-md transition"
                   >
                     {/* TOP: image area */}
                     <div className="relative h-52 bg-gradient-to-br from-[#1A2B56]/10 to-[#1A2B56]/0 flex items-center justify-center">
-                      {p.imageUrl ? (
-                        <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="text-[#1A2B56]/40 text-sm">Image</div>
-                      )}
+                      {/* your DB currently has no image field */}
+                      <div className="text-[#1A2B56]/40 text-sm">Image</div>
 
                       {/* Heart favorite (top-right) */}
                       <button
-                        onClick={() => toggleFavorite(p.id)}
+                        onClick={() =>
+                          setFavorites((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(favKey)) next.delete(favKey);
+                            else next.add(favKey);
+                            return next;
+                          })
+                        }
                         className={`absolute top-3 right-3 rounded-full p-2 shadow border transition ${
                           isFav
                             ? "bg-white text-red-500 border-red-200"
@@ -320,12 +392,12 @@ export default function ProductPage() {
                         <HeartIcon filled={isFav} />
                       </button>
 
-                      {/* Badge: ONLY show if multiple problems selected */}
-                      {showBadges && (
+                      {/* Badge ONLY when multiple problems selected */}
+                      {showBadges && badgeLabel && (
                         <div
                           className={`absolute bottom-3 right-3 ${badgeClass} text-black text-xs font-semibold px-3 py-1 rounded-full shadow`}
                         >
-                          {problemLabel}
+                          {badgeLabel}
                         </div>
                       )}
                     </div>
@@ -334,11 +406,16 @@ export default function ProductPage() {
                     <div className="p-4 space-y-2">
                       <div className="text-[#1A2B56] font-semibold leading-snug">{p.name}</div>
                       <div className="text-[#1A2B56]/70 text-sm">{p.brand}</div>
+
+                      {/* active ingredients % */}
                       <div className="text-[#1A2B56] text-sm">
-                        <span className="text-[#1A2B56]/60">Active: </span>
-                        {p.active}
+                        <span className="text-[#1A2B56]/60">Actives: </span>
+                        {formatActives(p.actives)}
                       </div>
-                      <div className="text-[#1A2B56] font-bold">${p.price.toFixed(2)}</div>
+
+                      <div className="text-[#1A2B56] font-bold">
+                        {typeof p.price === "number" ? `$${p.price.toFixed(2)}` : "—"}
+                      </div>
                     </div>
                   </div>
                 );
