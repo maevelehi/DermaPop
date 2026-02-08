@@ -25,9 +25,9 @@ export default function Login() {
   return (
     <div
       id="loginView"
-      className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 fade-slide"
+      className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 fade-slide font-sans"
     >
-      <img src="public/login.jpg" alt="Logo" className="auth-image mb-6" />
+      <img src="/login.jpg" alt="Logo" className="auth-image mb-6" />
       <h1 className="text-2xl font-bold mb-6">Login</h1>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <input
@@ -44,13 +44,13 @@ export default function Login() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <button className="btn" onClick={handleLogin}>
+      <button className="btn font-sans" onClick={handleLogin}>
         Login
       </button>
-      <small className="mt-4">
+      <small className="mt-4 font-sans">
         Don't have an account?{" "}
         <span
-          className="text-blue-500 cursor-pointer"
+          className="text-blue-500 cursor-pointer font-sans"
           onClick={() => navigate("/signup")}
         >
           Sign up

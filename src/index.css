@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#signupView input,
+#signupView button,
+#loginView input,
+#loginView button {
+  @apply font-sans;
+}

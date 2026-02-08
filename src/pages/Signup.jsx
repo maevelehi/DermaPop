@@ -40,7 +40,7 @@ export default function SignUp() {
   return (
     <div
       id="signupView"
-      className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 fade-slide"
+      className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 fade-slide font-sans"
     >
       <img src="/logo.png" alt="App Logo" className="auth-image mb-6" />
       <h1 className="text-2xl font-bold mb-6">Sign Up</h1>

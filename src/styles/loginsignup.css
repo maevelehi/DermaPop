@@ -1,5 +1,4 @@
-/* Entrance animation for auth-image */
-.auth-image {
+Entrance animation for auth-image .auth-image {
   display: block;
   margin: 0 auto 30px auto;
   width: 100%;
@@ -31,9 +30,21 @@
 /* Add nice spacing between form inputs */
 #loginView .form-control,
 #signupView .form-control {
+  width: 100%;
+  max-width: 420px;
   padding: 12px;
   margin-bottom: 18px;
 }
+
+#loginView .btn {
+  width: 100%;
+  max-width: 420px;
+  background-color: #1A2B56;
+  color: white;
+  border: none;
+  border-radius: 12px;
+}
+
 
 #loginView button,
 #signupView button {
@@ -47,12 +58,32 @@
   display: block;
 }
 
-/* Inputs and buttons in login/signup forms */
-#loginForm .form-control,
-#loginForm button,
-#signupForm .form-control,
-#signupForm button {
-  border-radius: 12px; /* adjust this for more or less rounding */
+#loginView .form-control {
+  border-radius: 12px;
+}
+
+
+#loginView {
+  background-color: #F3ECE6; /* light blue-gray, change to any color */
+}
+
+/* Signup inputs and button */
+#signupView .form-control,
+#signupView .btn {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;  /* same as login */
+}
+
+/* Optional: make button orange like login */
+#signupView .btn {
+  background-color: #1A2B56;
+  color: white;
+  border: none;
+}
+
+#signupView {
+  background-color: #F3ECE6; /* light blue-gray, change to any color */
 }
 
 /* Optional: make button text bold and slightly bigger */
@@ -94,4 +125,16 @@
 #loginView *:nth-child(5),
 #signupView *:nth-child(5) {
   animation-delay: 0.3s;
+}
+
+#signupView .form-control:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset; /* forces white background */
+  -webkit-text-fill-color: #000; /* text color */
+  transition: background-color 5000s ease-in-out 0s; /* prevents flicker */
+}
+
+#loginView .form-control:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset; /* forces white background */
+  -webkit-text-fill-color: #000; /* text color */
+  transition: background-color 5000s ease-in-out 0s; /* prevents flicker */
 }
