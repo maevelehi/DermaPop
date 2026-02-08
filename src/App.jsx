@@ -4,8 +4,27 @@ import Login from "./pages/Login";
 import SignUp from "./pages/Signup";
 import SkinType from "./pages/SkinType";
 import ProblemSelector from "./pages/ProblemSelector";
+import ProductDetail from "./pages/ProductDetail";
+// import { useEffect, useState } from "react";
+// import { seedProducts } from "./seedProducts";
+
 
 function App() {
+  // const [seeded, setSeeded] = useState(false);
+
+  // useEffect(() => {
+  //   if (seeded) return;
+
+  //   const runSeed = async () => {
+  //     await seedProducts();
+  //     setSeeded(true);
+  //     console.log("Products seeded");
+  //   };
+
+  //   runSeed();
+  // }, [seeded]);
+
+
   return (
     <Router>
       <Routes>
@@ -14,6 +33,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/skin-type" element={<SkinType />} />
         <Route path="/problems" element={<ProblemSelector />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
       </Routes>
     </Router>
   );
