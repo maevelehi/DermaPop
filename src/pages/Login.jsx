@@ -47,7 +47,7 @@ export default function Login() {
       <button className="btn font-sans" onClick={handleLogin}>
         Login
       </button>
-      <small className="mt-4 font-sans">
+      <small className="mt-4 font-sans mb-6">
         Don't have an account?{" "}
         <span
           className="text-blue-500 cursor-pointer font-sans"

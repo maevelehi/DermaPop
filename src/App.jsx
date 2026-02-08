@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import SignUp from "./pages/Signup";
+import SkinType from "./pages/SkinType";
+import ProblemSelector from "./pages/ProblemSelector";
 
 function App() {
   return (
@@ -10,6 +12,8 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/skin-type" element={<SkinType />} />
+        <Route path="/problems" element={<ProblemSelector />} />
       </Routes>
     </Router>
   );
