@@ -5,9 +5,6 @@ Skincare is an important components of healthcare. Finding skincare products tha
 ## What it does
 Users select their skin type and common skin problems, and DermaPop filters products accordingly. Each product card clearly shows the product image, brand, active ingredient percentages, and price. When multiple concerns are selected, products are visually labeled to indicate which problem they target. Users can also favorite products and save them to a wishlist.
 ﻿
-## Inspiration
-Skincare is an important components of healthcare. Finding skincare products that actually work for individual skin concerns is overwhelming. Ingredient lists are long, marketing claims are confusing, and many people end up buying products that don’t truly address their needs. We wanted to build a tool that simplifies skincare decisions and effectively deal with skin problems by focusing on what really matters: skin type, specific concerns, and effective ingredients.
-
 ## What it does
 Users select their skin type and common skin problems, and DermaPop filters products accordingly. Each product card clearly shows the product image, brand, active ingredient percentages, and price. When multiple concerns are selected, products are visually labeled to indicate which problem they target. Users can also favorite products and save them to a wishlist.
 
